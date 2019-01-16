@@ -10,7 +10,7 @@ c has a servo.h library
 
 How servos work:
 http://www.basicx.com/Products/robotbook/servo%20intro.pdf (supper good if you want to understand whats going on)
-also has programing tips at the end (they are in C)
+also has programing tips at the end 
 
 send pulses to the servo's control board
 Servos interpret pulse width as positions
@@ -26,3 +26,5 @@ modified servo full rotation in either direction
 pulses are sent at the desired pulse width of the location it wants it to be at until it has reached the desiered spped
 could take a couple pulses (works with a longer or shorter pulse width)
 
+So this has some code at the bottom(in Malay - so ugh thx google translate)- but simple c code
+http://thouth.net/rweasy/-1ODVY/4116/pic-lesson-servo-motor?rndad=1160462865-1547608432
