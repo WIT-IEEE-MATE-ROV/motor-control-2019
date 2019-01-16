@@ -9,6 +9,9 @@ https://learn.adafruit.com/adafruit-16-channel-servo-driver-with-raspberry-pi/ov
 c has a servo.h library
 
 How servos work:
+http://www.basicx.com/Products/robotbook/servo%20intro.pdf (supper good if you want to understand whats going on)
+also has programing tips at the end (they are in C)
+
 send pulses to the servo's control board
 Servos interpret pulse width as positions
 each position along the arc traced out by the rotating shaft has a corresponding pulse width
