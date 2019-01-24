@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         
         if(error) {
             char string[75];
-            sprintf(string, "catastrophic falure of some kind, probably. (thuster %i)\n", Whichami.data_send);
+            sprintf(string, "Catastrophic falure of some kind, probably. (thuster %i)\n", Whichami.data_send);
             perror(string);
         }
     }
@@ -39,8 +39,13 @@ int main(int argc, char* argv[]) {
  * @return true on success, false on fail.
  */
 bool do_thruster_movement(int goalval) {
-    // TODO
-    return false;
+    // goal value= percent pressed forward on joystick... speed
+    //.h file that takes the goalval and translates into a pwm for speed
+    if ( 0 < goalval && goalval < 1)
+        //translate to pwm here
+        return true;
+    else
+        return false;
 }
 
 /**
