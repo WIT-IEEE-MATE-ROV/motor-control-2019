@@ -32,11 +32,14 @@ struct __WHICHAMI__ {
 void populate_whichami(char*); 
 bool do_thruster_movement(int);
 
-#ifndef ROVCOMM
-#define ROVCOMM
+//ifndef ROVCOMM
+//#define ROVCOMM
 // This should only be declared by the comm's package.
-int comms_get_int(int);
-#pragma warn The comms package have not been properly included, declaring to allow compilation
-#endif
+//int comms_get_int(int);
+//#pragma warn The comms package have not been properly included, declaring to allow compilation
+//#endif
+int comms_get_int(int i) {
+    return -1;
+}
 
 #endif
