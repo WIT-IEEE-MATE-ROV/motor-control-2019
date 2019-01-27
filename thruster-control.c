@@ -41,9 +41,11 @@ int main(int argc, char* argv[]) {
 bool do_thruster_movement(int goalval) {
     // goal value= percent pressed forward on joystick... speed
     //.h file that takes the goalval and translates into a pwm for speed
-    if ( 0 < goalval && goalval < 1)
-        //translate to pwm here
-        return true;
+    if ( -1 < goalval && goalval < 1){
+        if( 
+        
+        //return true;
+    }
     else
         return false;
 }
