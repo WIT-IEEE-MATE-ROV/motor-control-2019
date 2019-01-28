@@ -284,11 +284,11 @@ void pca9685FullOff(int fd, int pin, int tf)
 /**
  * Helper function to get to register
  */
+//need to change not dealing LEDs need to set this up for the motors 
 int baseReg(int pin)
 {
 	return (pin >= PIN_ALL ? LEDALL_ON_L : LED0_ON_L + 4 * pin);
 }
-*/
  
  /**
  * Simple PWM control which sets on-tick to 0 and off-tick to value.
