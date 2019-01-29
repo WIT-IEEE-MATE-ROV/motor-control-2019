@@ -6,7 +6,7 @@ struct __WHICHAMI__ {
     char name[25];   // Note that this is static, and will not be allocated dynamically.
     int data_source;
     int data_send;
-    int fd;
+    int fileDescriptor;
 } Whichami;
 
 //default is 0x40...
