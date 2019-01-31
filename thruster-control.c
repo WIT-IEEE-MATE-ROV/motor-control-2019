@@ -10,6 +10,7 @@
 #define PIN_BASE 300
 #define MAX_PWM 4096
 #define HERTZ 50
+#define MIN_PWM 0
 
 //Calculate the number of ticks the signal should be high for the required about of time
 int calcTicks(float impulseMs, int hertz)
@@ -39,21 +40,30 @@ int main(int argc, char* argv[]) {
     }
 
     populate_whichami(argv[argc]);
-int fd = pca9586Setup(PIN_BASE, Whichami.data_send /*address for the thruster */, HERTZ);
+    int fd = pca9586Setup(PIN_BASE, Whichami.data_send /*address for the thruster */, HERTZ);
     if(Whichami.data_source == -1) {
         perror("Didn't recognize that thruster\n");
         exit(2);
     }
-	
+    
+    //reset all output
+    pca9685PWMReset(fd);
 
+    //set servo to nutral position (90 degress, at 15 milliseconds)
+    float millis = 1.5;
+    int tick = calcTicks(millis, HERTZ);
+    pwmWrite(Whichami.fd, tick);
+    delay(1000);
+	
     while(true) {
+	    
         int thruster_goal_value = comms_get_int(Whichami.data_source);
         bool error = false;
         error = do_thruster_movement(thruster_goal_value);
         
         if(error) {
             char string[75];
-            sprintf(string, "Catastrophic falure of some kind, probably. (thuster %i)\n", Whichami.data_send);
+            sprintf(string, "Catastrophic failure of some kind, probably. (thuster %i)\n", Whichami.data_send);
             perror(string);
         }
     }
@@ -72,12 +82,20 @@ bool do_thruster_movement(double goalval) {
         double pwm;
         if(goalval > 0){ //goes "forward"
             pwm = (goalval*4095);
-            myPwmWrite(Whichami.fd, pwm);
-            //may need to check that it actually wrote the corect valur for troubleshooting
+	    millis = map(goalval, MIN_PWM, MAX_PWM);
+	    tick = calcTicks(millis, HERTZ)
+            myPwmWrite(Whichami.fd, tick);
+            //may need to check that it actually wrote the corect value for troubleshooting
             return true;
         }
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
+		//how do we make the motor spin backwards???
+		//need to reverse the power(look at old code)
+	    millis = map((goalval8*(-1)), MIN_PWM, MAX_PWM);
+	    tick = calcTicks(millis, HERTZ)
+            myPwmWrite(Whichami.fd, tick);
+            //may need to check that it actua
 	//this is not going to make it spin backwards
             myPwmWrite(Whichami.fd, pwm);
             //msy need to add in reading
