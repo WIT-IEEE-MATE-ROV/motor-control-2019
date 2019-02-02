@@ -12,6 +12,10 @@
 #define HERTZ 50
 #define MIN_PWM 0
 
+//zero/nutral 1.5ms
+//left 1ms
+//right 2ms
+
 //Calculate the number of ticks the signal should be high for the required about of time
 int calcTicks(float impulseMs, int hertz)
 {
@@ -49,7 +53,7 @@ int main(int argc, char* argv[]) {
     //reset all output
     pca9685PWMReset(fd);
 
-    //set servo to nutral position (90 degress, at 15 milliseconds)
+    //set servo to nutral position (90 degress, at 1.5 milliseconds)
     float millis = 1.5;
     int tick = calcTicks(millis, HERTZ);
     pwmWrite(Whichami.fd, tick);
