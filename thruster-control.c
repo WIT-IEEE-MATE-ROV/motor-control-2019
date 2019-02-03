@@ -3,22 +3,29 @@
 #include <stdbool.h>
 #include <string.h>
 #include "thruster-control.h"
+#include "rov-standard-utils.h"
 
 /**
  * This entire program is devoted to a single thruster, as specified by the value passed to argv[argc].
  * This allows thruster control to be asynchronous and makes spawning new thruter programs pretty easy.
  */
 int main(int argc, char* argv[]) {
+    rl_setfile("./rovlog.txt");
+    rl_setlevel(INFO);
+    rl_setsource("Unspecified thruster-control");
+
     if(argc != 2) {
-        perror("Wrong amount of arguments!\n");
+        rovlog(FATAL, "Wrong amount of arguments!");
         exit(1);
     }
 
     populate_whichami(argv[argc]);
     if(Whichami.data_source == -1) {
-        perror("Didn't recognize that thruster\n");
+        rovlog(FATAL, "Didn't recognize that thruster");
         exit(2);
     }
+
+    rl_setsource(Whichami.name);
 
     while(true) {
         int thruster_goal_value = comms_get_int(Whichami.data_source);
@@ -27,8 +34,8 @@ int main(int argc, char* argv[]) {
         
         if(error) {
             char string[75];
-            sprintf(string, "catastrophic falure of some kind, probably. (thuster %i)\n", Whichami.data_send);
-            perror(string);
+            sprintf(string, "catastrophic falure of some kind, probably. (thuster %i)", Whichami.data_send);
+            rovlog(FATAL, string);
         }
     }
 }
