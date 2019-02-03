@@ -1,156 +1,60 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
+/*************************************************************************
+ * pca9685.c
+ *
+ * This software is a devLib extension to wiringPi <http://wiringpi.com/>
+ * and enables it to control the Adafruit PCA9685 16-Channel 12-bit
+ * PWM/Servo Driver <http://www.adafruit.com/products/815> via I2C interface.
+ *
+ * Copyright (c) 2014 Reinhard Sprung
+ *
+ * If you have questions or improvements email me at
+ * reinhard.sprung[at]gmail.com
+ *
+ * This software is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The given code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You can view the contents of the licence at <http://www.gnu.org/licenses/>.
+ **************************************************************************
+ */
+
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
-#include "thruster-control.h"
 
-#include "rov-standard-utils.h"
 #include "pca9685.h"
 
-//Setup Registers
+// Setup registers
 #define PCA9685_MODE1 0x0
 #define PCA9685_PRESCALE 0xFE
 
-/**
- * This entire program is devoted to a single thruster, as specified by the value passed to argv[argc].
- * This allows thruster control to be asynchronous and makes spawning new thruter programs pretty easy.
- */
-int main(int argc, char* argv[]) {
-    rl_setfile("./rovlog.txt");
-    rl_setlevel(INFO);
-    rl_setsource("Unspecified thruster-control");
+// Define first LED and all LED. We calculate the rest
+#define LED0_ON_L 0x6
+#define LEDALL_ON_L 0xFA
 
-    if(argc != 2) {
-        rovlog(FATAL, "Wrong amount of arguments!");
-        exit(1);
-    }
+#define PIN_ALL 16
 
-    populate_whichami(argv[argc]);
-    if(Whichami.data_source == -1) {
-        rovlog(FATAL, "Didn't recognize that thruster");
-        exit(2);
-    }
 
-    rl_setsource(Whichami.name);
+// Declare
+static void myPwmWrite(struct wiringPiNodeStruct *node, int pin, int value);
+static void myOnOffWrite(struct wiringPiNodeStruct *node, int pin, int value);
+static int myOffRead(struct wiringPiNodeStruct *node, int pin);
+static int myOnRead(struct wiringPiNodeStruct *node, int pin);
+int baseReg(int pin);
 
-    while(true) {
-        int thruster_goal_value = comms_get_int(Whichami.data_source);
-        bool error = false;
-        error = do_thruster_movement(thruster_goal_value);
-        
-        if(error) {
-            char string[75];
-            sprintf(string, "Catastrophic failure of some kind, probably. (thruster %i)", Whichami.data_send);
-            rovlog(FATAL, string);
-        }
-    }
-}
 
-/**
- * Does the thruster movement. The value provided gets sent to Whichami.data_send.
- * @param goalval The goal value.
- * @return true on success, false on fail.
- */
-//PWM max = 4095
-bool do_thruster_movement(double goalval) {
-    // goal value= percent pressed forward on joystick... speed
-    //.h file that takes the goalval and translates into a pwm for speed
-    if ( -1 < goalval && goalval < 1)
-        double pwm;
-        if(goalval > 0){ //goes "forward"
-            pwm = (goalval*4095);
-            myPwmWrite(Whichami.fd, pwm);
-            //may need to check that it actually wrote the corect valur for troubleshooting
-            return true;
-        }
-        else{  //goes "backward"
-            pwm = (goalval*4095*(-1));
-            myPwmWrite(Whichami.fd, pwm);
-            //msy need to add in reading
-            return true;
-        }
-    else
-        return false;
-}
-
-/**
- * Populates the 'Whichami' struct.
- */
-void populate_whichami(char* input) {
-    strcpy(Whichami.name, input);
-
-    if(!strcmp(input, "T_H_FRONTLEFT")) {
-        Whichami.data_source = PORT_T_H_FRONTLEFT;
-        Whichami.data_send   = T_H_FRONTLEFT;
-        fd = 5; //need to change to actual values when electrical gives them to us
-        return;
-    }
-
-    if(!strcmp(input, "T_H_FRONTRIGHT")) {
-        Whichami.data_source = PORT_T_H_FRONTRIGHT;
-        Whichami.data_send   = T_H_FRONTRIGHT;
-        fd = 6; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_H_BACKLEFT")) {
-        Whichami.data_source = PORT_T_H_BACKLEFT;
-        Whichami.data_send   = T_H_BACKLEFT;
-        fd = 7; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_H_BACKRIGHT")) {
-        Whichami.data_source = PORT_T_H_BACKRIGHT;
-        Whichami.data_send   = T_H_BACKRIGHT;
-        fd = 8; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_V_LEFT")) {
-        Whichami.data_source = PORT_T_V_LEFT;
-        Whichami.data_send   = T_V_LEFT;
-        fd = 4; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_V_RIGHT")) {
-        Whichami.data_source = PORT_T_V_RIGHT;
-        Whichami.data_send   = T_V_RIGHT;
-        fd = 2; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_V_FRONT")) {
-        Whichami.data_source = PORT_T_V_FRONT;
-        Whichami.data_send   = T_V_FRONT;
-        fd = 1; //need to change to actual values when electrical gives them to us
-        return;
-    }
-   
-    if(!strcmp(input, "T_V_BACK")) {
-        Whichami.data_source = PORT_T_V_BACK;
-        Whichami.data_send   = T_V_BACK;
-        fd = 3; //need to change to actual values when electrical gives them to us
-        return;
-    }
-
-    // If we got here, there was no match... populate -1 so main can handle it.
-    Whichami.data_source = -1;
-    Whichami.data_send   = -1;
-}
-                
-                
 /**
  * Setup a PCA9685 device with wiringPi.
  *  
  * pinBase: 	Use a pinBase > 64, eg. 300
  * i2cAddress:	The default address is 0x40
- * freq:		Frequency will be capped to range [40..1000] Hertz. Try 50 for servos 
+ * freq:		Frequency will be capped to range [40..1000] Hertz. Try 50 for servos
  */
-
 int pca9685Setup(const int pinBase, const int i2cAddress, float freq)
 {
 	// Create a node with 16 pins [0..15] + [16] for all
@@ -292,13 +196,24 @@ void pca9685FullOff(int fd, int pin, int tf)
 /**
  * Helper function to get to register
  */
-//need to change not dealing LEDs need to set this up for the motors 
 int baseReg(int pin)
 {
 	return (pin >= PIN_ALL ? LEDALL_ON_L : LED0_ON_L + 4 * pin);
 }
- 
- /**
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------
+//
+//	WiringPi functions
+//
+//------------------------------------------------------------------------------------------------------------------
+
+
+
+
+/**
  * Simple PWM control which sets on-tick to 0 and off-tick to value.
  * If value is <= 0, full-off will be enabled
  * If value is >= 4096, full-on will be enabled
