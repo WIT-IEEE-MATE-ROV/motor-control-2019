@@ -1,10 +1,13 @@
 objects = ../comms/nugget-api.o ../rov-core/rov-util.o ../rovlog/rovlog.o 
 stdflag = -g -Wall -Wextra -L. -I. -lm -Wl,-unresolved-symbols=ignore-in-shared-libs
 
-all : #$(objects)
-	gcc motor-master.c -o motor-master $(stdflag) $(objects)
+all :
+	make master
 	make motor
 	make thruster
+
+master :
+	gcc motor-master.c -o motor-master $(stdflag) $(objects)
 
 motor :
 	gcc subsystem-motor.c -o subsystem-motor $(stdflag) $(objects)
