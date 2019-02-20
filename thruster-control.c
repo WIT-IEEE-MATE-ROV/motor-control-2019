@@ -1,9 +1,11 @@
+//https://github.com/Reinbert/pca9685/blob/master/examples/servo.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-//#include <wiringPi.h>
-//#include <wiringPiI2C.h>
+#include <wiringPi.h>
+#include <wiringPiI2C.h>
 #include "thruster-control.h"
 #include "pca9685.h"
 
@@ -11,10 +13,18 @@
 #define MAX_PWM 4096
 #define HERTZ 50
 #define MIN_PWM 0
+#define SERVOMIN 
 
 //zero/nutral 1.5ms
 //left 1ms
 //right 2ms
+
+/*
+need to calibrate servo find the Servomin/max at 0 and 180
+question about turning? -? calcticks how long to get right turn value
+goal value is what? amouunt of speed due to 
+how far forward/backward/sideways -> pwm value
+*/
 
 //Calculate the number of ticks the signal should be high for the required about of time
 int calcTicks(float impulseMs, int hertz)
@@ -50,8 +60,15 @@ int main(int argc, char* argv[]) {
         exit(2);
     }
 
+    //initalizes the I2C system - use I2C detect to find the give device identifier
+    //need to upate the fd's to reflect the identifies
+    if (wiringPiI2CSetup(fd) == -1){
+        sprintf(string, "Failed to set up. (thruster %i)\n", Whichami.data_send);
+        perror(string);
+    }
+
     //reset all output
-    pca9685PWMReset(fd);
+    pca9685PWMReset(Whichami.fd);
 
     //set servo to neutral position (90 degrees, at 1.5 milliseconds)
     float millis = 1.5;
@@ -62,10 +79,9 @@ int main(int argc, char* argv[]) {
     while(true) {
 
         int thruster_goal_value = comms_get_int(Whichami.data_source);
-        int error = 0;
-        error = do_thruster_movement(thruster_goal_value);
+        int error = do_thruster_movement(thruster_goal_value);
 
-        //error is returned as 0
+        //error is returned as 0 if there is an issue
         if(error == 0) {
             char string[75];
             sprintf(string, "Catastrophic failure of some kind, probably. (thruster %i)\n", Whichami.data_send);
@@ -73,6 +89,12 @@ int main(int argc, char* argv[]) {
         }
     }
 }
+ 
+ void pca9685PWMReset(int fd){
+     wiringPiI2CWriteReg16(fd, LEDALLL_ON_L, 0x0);
+     wiringPiI2CWriteReg16(fd, LEDALLL_ON_L + 2, 0x1000);
+ }
+
 
 /**
  * Does the thruster movement. The value provided gets sent to Whichami.data_send.
@@ -90,22 +112,22 @@ int do_thruster_movement(double goalval)
         double pwm;
         if(goalval > 0){ //goes "forward"
             pwm = (goalval*4095);
-	    millis = map(goalval, MIN_PWM, MAX_PWM);
-	    tick = calcTicks(millis, HERTZ)
-            myPwmWrite(Whichami.fd, tick);
+	        millis = map(goalval, MIN_PWM, MAX_PWM);
+	        tick = calcTicks(millis, HERTZ)
+            wiringPiI2CWrite(Whichami.fd, tick);
             //may need to check that it actually wrote the correct value for troubleshooting
             error = 1;
         }
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
-		//how do we make the motor spin backwards???
-		//need to reverse the power(look at old code)
-	    millis = map((goalval8*(-1)), MIN_PWM, MAX_PWM);
-	    tick = calcTicks(millis, HERTZ)
-            myPwmWrite(Whichami.fd, tick);
+		    //how do we make the motor spin backwards???
+		    //need to reverse the power(look at old code)
+	        millis = map((goalval8*(-1)), MIN_PWM, MAX_PWM);
+	        tick = calcTicks(millis, HERTZ)
+            wiringPiI2CWrite(Whichami.fd, tick);
             //may need to check that it actua
-	//this is not going to make it spin backwards
-            myPwmWrite(Whichami.fd, pwm);
+	        //this is not going to make it spin backwards
+            mwiringPiI2CWrite(Whichami.fd, pwm);
             //may need to add in reading
             error =  1;
         }
@@ -115,6 +137,8 @@ int do_thruster_movement(double goalval)
 
     return error;
 }
+
+
 
 /**
  * Populates the 'Whichami' struct.

@@ -32,8 +32,8 @@ struct __WHICHAMI__ {
 #define PORT_T_V_BACK       0
 
 //// FUNCTIONS ////
-void populate_whichami(char*); 
-bool do_thruster_movement(int);
+void populate_whichami(char*);
+int do_thruster_movement(int);
 static void myPwmWrite(struct wiringPiNodeStruct *node, int pin, int value);
 static void myOnOffWrite(struct wiringPiNodeStruct *node, int pin, int value);
 static int myOffRead(struct wiringPiNodeStruct *node, int pin);
