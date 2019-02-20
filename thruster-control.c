@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
+//#include <wiringPi.h>
+//#include <wiringPiI2C.h>
 #include "thruster-control.h"
 #include "pca9685.h"
 
@@ -49,25 +49,26 @@ int main(int argc, char* argv[]) {
         perror("Didn't recognize that thruster\n");
         exit(2);
     }
-    
+
     //reset all output
     pca9685PWMReset(fd);
 
-    //set servo to nutral position (90 degress, at 1.5 milliseconds)
+    //set servo to neutral position (90 degrees, at 1.5 milliseconds)
     float millis = 1.5;
     int tick = calcTicks(millis, HERTZ);
     pwmWrite(Whichami.fd, tick);
-    delay(1000);
-	
+    delay(100);
+
     while(true) {
-	    
+
         int thruster_goal_value = comms_get_int(Whichami.data_source);
-        bool error = false;
+        int error = 0;
         error = do_thruster_movement(thruster_goal_value);
-        
-        if(error) {
+
+        //error is returned as 0
+        if(error == 0) {
             char string[75];
-            sprintf(string, "Catastrophic failure of some kind, probably. (thuster %i)\n", Whichami.data_send);
+            sprintf(string, "Catastrophic failure of some kind, probably. (thruster %i)\n", Whichami.data_send);
             perror(string);
         }
     }
@@ -79,9 +80,12 @@ int main(int argc, char* argv[]) {
  * @return true on success, false on fail.
  */
 //PWM max = 4095
-bool do_thruster_movement(double goalval) {
+int do_thruster_movement(double goalval)
     // goal value= percent pressed forward on joystick... speed
     //.h file that takes the goalval and translates into a pwm for speed
+
+    //error = 0 when it fails and 1 when it works
+    int error = 0;
     if ( -1 < goalval && goalval < 1)
         double pwm;
         if(goalval > 0){ //goes "forward"
@@ -89,8 +93,8 @@ bool do_thruster_movement(double goalval) {
 	    millis = map(goalval, MIN_PWM, MAX_PWM);
 	    tick = calcTicks(millis, HERTZ)
             myPwmWrite(Whichami.fd, tick);
-            //may need to check that it actually wrote the corect value for troubleshooting
-            return true;
+            //may need to check that it actually wrote the correct value for troubleshooting
+            error = 1;
         }
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
@@ -102,11 +106,14 @@ bool do_thruster_movement(double goalval) {
             //may need to check that it actua
 	//this is not going to make it spin backwards
             myPwmWrite(Whichami.fd, pwm);
-            //msy need to add in reading
-            return true;
+            //may need to add in reading
+            error =  1;
         }
-    else
-        return false;
+    else{
+        error = 0;
+    }
+
+    return error;
 }
 
 /**
@@ -128,42 +135,42 @@ void populate_whichami(char* input) {
         //fd = 6; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_H_BACKLEFT")) {
         Whichami.data_source = PORT_T_H_BACKLEFT;
         Whichami.data_send   = T_H_BACKLEFT;
         //fd = 7; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_H_BACKRIGHT")) {
         Whichami.data_source = PORT_T_H_BACKRIGHT;
         Whichami.data_send   = T_H_BACKRIGHT;
         //fd = 8; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_V_LEFT")) {
         Whichami.data_source = PORT_T_V_LEFT;
         Whichami.data_send   = T_V_LEFT;
         //fd = 4; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_V_RIGHT")) {
         Whichami.data_source = PORT_T_V_RIGHT;
         Whichami.data_send   = T_V_RIGHT;
         //fd = 2; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_V_FRONT")) {
         Whichami.data_source = PORT_T_V_FRONT;
         Whichami.data_send   = T_V_FRONT;
         //fd = 1; //need to change to actual values when electrical gives them to us
         return;
     }
-   
+
     if(!strcmp(input, "T_V_BACK")) {
         Whichami.data_source = PORT_T_V_BACK;
         Whichami.data_send   = T_V_BACK;
