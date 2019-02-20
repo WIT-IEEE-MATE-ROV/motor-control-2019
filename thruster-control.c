@@ -13,7 +13,7 @@
 #define MAX_PWM 4096
 #define HERTZ 50
 #define MIN_PWM 0
-#define SERVOMIN 
+//#define SERVOMIN 
 
 //zero/nutral 1.5ms
 //left 1ms
@@ -67,8 +67,10 @@ int main(int argc, char* argv[]) {
         perror(string);
     }
 
-    //reset all output
+    /* This should be done in the master to reset before we use it
+    reset all output
     pca9685PWMReset(Whichami.fd);
+    */
 
     //set servo to neutral position (90 degrees, at 1.5 milliseconds)
     float millis = 1.5;
@@ -90,11 +92,13 @@ int main(int argc, char* argv[]) {
     }
 }
  
+/* should be in the master file
+
  void pca9685PWMReset(int fd){
      wiringPiI2CWriteReg16(fd, LEDALLL_ON_L, 0x0);
      wiringPiI2CWriteReg16(fd, LEDALLL_ON_L + 2, 0x1000);
  }
-
+*/
 
 /**
  * Does the thruster movement. The value provided gets sent to Whichami.data_send.
