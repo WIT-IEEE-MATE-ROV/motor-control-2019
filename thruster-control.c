@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-     pca9685PWMFreq(0x40);
+    pca9685PWMFreq(0x40);
 
     populate_whichami(argv[argc]);
     if(Whichami.data_source == -1) {
@@ -29,10 +29,9 @@ int main(int argc, char* argv[]) {
         exit(2);
     }
 
-    /*initalizes the I2C system - use I2C detect to find the give device identifier
-    need to upate the fd's to reflect the identifies*/
-    if (wiringPiI2CSetup(fd) == -1){
-        sprintf(string, "Failed to set up. (thruster %i)\n", Whichami.data_send);
+    /*initalizes the I2C system - use I2C detect to find the give device identifier*/
+    if (wiringPiI2CSetup(I2C_ADDRESS) == -1){
+        sprintf(string, "Failed to set up I2C system");
         perror(string);
     }
 
@@ -59,7 +58,7 @@ void pca9685PWMFreq(){
 	int prescale = (int)(25000000.0f / (4096 * FREQ) - 0.5f);
 
 	// Get settings and calc bytes for the different states.
-	int settings = wiringPiI2CReadReg8(fd, PCA9685_MODE1) & 0x7F;	// Set restart bit to 0
+	int settings = wiringPiI2CReadReg8(I2C_ADDRESS, PCA9685_MODE1) & 0x7F;	// Set restart bit to 0
 	int sleep	= settings | 0x10;									// Set sleep bit to 1
 	int wake 	= settings & 0xEF;									// Set sleep bit to 0
 	int restart = wake | 0x80;										// Set restart bit to 1
@@ -91,7 +90,7 @@ bool do_thruster_movement(double goalval)
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
 		    //need to reverse the power/polarity
-            wiringPiI2CWriteReg16(0x40, Whichami.pin, pwm & 0x0FFF);
+            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm & 0x0FFF);
             return false;
         }
     else{
