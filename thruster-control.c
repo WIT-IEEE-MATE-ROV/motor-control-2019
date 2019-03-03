@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     }
 
     //send the high low signals.. didn't see those
-    pca9685PWMFreq(Whichami.fd);
+    pca9685PWMFreq();
     while(true) {
 
         int thruster_goal_value = comms_get_int(Whichami.data_source);
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-void pca9685PWMFreq(int fd){
+void pca9685PWMFreq(){
     // To set pwm frequency we have to set the prescale register. The formula is:
 	// prescale = round(osc_clock / (4096 * frequency))) - 1 where osc_clock = 25 MHz
 	// Further info here: http://www.nxp.com/documents/data_sheet/PCA9685.pdf Page 24
@@ -65,13 +65,13 @@ void pca9685PWMFreq(int fd){
 	int restart = wake | 0x80;										// Set restart bit to 1
 
 	// Go to sleep, set prescale and wake up again.
-	wiringPiI2CWriteReg8(fd, PCA9685_MODE1, sleep);
-	wiringPiI2CWriteReg8(fd, PCA9685_PRESCALE, prescale);
-	wiringPiI2CWriteReg8(fd, PCA9685_MODE1, wake);
+	wiringPiI2CWriteReg8(I2C_ADDRESS, PCA9685_MODE1, sleep);
+	wiringPiI2CWriteReg8(I2C_ADDRESS, PCA9685_PRESCALE, prescale);
+	wiringPiI2CWriteReg8(I2C_ADDRESS, PCA9685_MODE1, wake);
 
 	// Now wait a millisecond until oscillator finished stabilizing and restart PWM.
 	delay(1);
-	wiringPiI2CWriteReg8(fd, PCA9685_MODE1, restart);
+	wiringPiI2CWriteReg8(I2C_ADDRESS, PCA9685_MODE1, restart);
 }
 
 /**
@@ -85,13 +85,13 @@ bool do_thruster_movement(double goalval)
         double pwm;
         if(goalval > 0){ //goes "forward"
             pwm = (goalval*4095);
-            wiringPiI2CWriteReg16(0x40, Whichami.fd, pwm & 0x0FFF);
+            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm & 0x0FFF);
             return true;
         }
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
 		    //need to reverse the power/polarity
-            wiringPiI2CWriteReg16(0x40, Whichami.fd, pwm & 0x0FFF);
+            wiringPiI2CWriteReg16(0x40, Whichami.pin, pwm & 0x0FFF);
             return false;
         }
     else{
@@ -108,56 +108,56 @@ void populate_whichami(char* input) {
     if(!strcmp(input, "T_H_FRONTLEFT")) {
         Whichami.data_source = PORT_T_H_FRONTLEFT;
         Whichami.data_send   = T_H_FRONTLEFT;
-        //fd = 5; //need to change to actual values when electrical gives them to us
+        pin = 5; 
         return;
     }
 
     if(!strcmp(input, "T_H_FRONTRIGHT")) {
         Whichami.data_source = PORT_T_H_FRONTRIGHT;
         Whichami.data_send   = T_H_FRONTRIGHT;
-        //fd = 6; //need to change to actual values when electrical gives them to us
+        pin = 6; 
         return;
     }
 
     if(!strcmp(input, "T_H_BACKLEFT")) {
         Whichami.data_source = PORT_T_H_BACKLEFT;
         Whichami.data_send   = T_H_BACKLEFT;
-        //fd = 7; //need to change to actual values when electrical gives them to us
+        pin = 7; 
         return;
     }
 
     if(!strcmp(input, "T_H_BACKRIGHT")) {
         Whichami.data_source = PORT_T_H_BACKRIGHT;
         Whichami.data_send   = T_H_BACKRIGHT;
-        //fd = 8; //need to change to actual values when electrical gives them to us
+        pin = 8; 
         return;
     }
 
     if(!strcmp(input, "T_V_LEFT")) {
         Whichami.data_source = PORT_T_V_LEFT;
         Whichami.data_send   = T_V_LEFT;
-        //fd = 4; //need to change to actual values when electrical gives them to us
+        pin = 4; 
         return;
     }
 
     if(!strcmp(input, "T_V_RIGHT")) {
         Whichami.data_source = PORT_T_V_RIGHT;
         Whichami.data_send   = T_V_RIGHT;
-        //fd = 2; //need to change to actual values when electrical gives them to us
+        pin = 2; 
         return;
     }
 
     if(!strcmp(input, "T_V_FRONT")) {
         Whichami.data_source = PORT_T_V_FRONT;
         Whichami.data_send   = T_V_FRONT;
-        //fd = 1; //need to change to actual values when electrical gives them to us
+        pin = 1; 
         return;
     }
 
     if(!strcmp(input, "T_V_BACK")) {
         Whichami.data_source = PORT_T_V_BACK;
         Whichami.data_send   = T_V_BACK;
-        //fd = 3; //need to change to actual values when electrical gives them to us
+        pin = 3; 
         return;
     }
 
