@@ -6,7 +6,7 @@ struct __WHICHAMI__ {
     char name[25];   // Note that this is static, and will not be allocated dynamically.
     char data_source[64];
     int data_send;
-    int fd;
+    int fd; //register on pca(0-16)
 } Whichami;
 
 //default is 0x40...
@@ -21,7 +21,7 @@ struct __WHICHAMI__ {
 #define T_V_FRONT      1
 #define T_V_BACK       3
 
-//need API stuff for this @Chris
+//need API stuff 
 // TODO: these definitions contain the port number where the respective information can be found.
 #define API_T_H_FRONTLEFT  "motor/thruster/fl/goal\0"
 #define API_T_H_FRONTRIGHT "motor/thruster/fr/goal\0"
@@ -35,10 +35,6 @@ struct __WHICHAMI__ {
 //// FUNCTIONS ////
 void populate_whichami(char*); 
 bool do_thruster_movement(double);
-static void myPwmWrite(struct wiringPiNodeStruct *node, int pin, int value);
-static void myOnOffWrite(struct wiringPiNodeStruct *node, int pin, int value);
-static int myOffRead(struct wiringPiNodeStruct *node, int pin);
-static int myOnRead(struct wiringPiNodeStruct *node, int pin);
-int baseReg(int pin);
+
 
 #endif
