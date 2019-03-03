@@ -6,11 +6,11 @@ struct __WHICHAMI__ {
     char name[25];   // Note that this is static, and will not be allocated dynamically.
     int data_source;
     int data_send;
-    int fd;
+    int fd; //register on pca(0-16)
 } Whichami;
 
 //default is 0x40...
-// TODO: these definitions act as names for our thrusters. What values should they hold (i2c addresses or whatev)
+// TODO: these definitions act as names for our thrusters. What values should they hold (i2c addresses)
 #define T_H_FRONTLEFT  0x40
 #define T_H_FRONTRIGHT 0x40
 #define T_H_BACKLEFT   0x40
@@ -34,11 +34,6 @@ struct __WHICHAMI__ {
 //// FUNCTIONS ////
 void populate_whichami(char*);
 int do_thruster_movement(int);
-static void myPwmWrite(struct wiringPiNodeStruct *node, int pin, int value);
-static void myOnOffWrite(struct wiringPiNodeStruct *node, int pin, int value);
-static int myOffRead(struct wiringPiNodeStruct *node, int pin);
-static int myOnRead(struct wiringPiNodeStruct *node, int pin);
-int baseReg(int pin);
 
 //ifndef ROVCOMM
 //#define ROVCOMM
