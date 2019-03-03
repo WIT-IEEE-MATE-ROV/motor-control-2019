@@ -91,7 +91,6 @@ bool do_thruster_movement(double goalval)
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
 		    //need to reverse the power/polarity
-
             wiringPiI2CWriteReg16(0x40, Whichami.fd, pwm & 0x0FFF);
             return false;
         }
