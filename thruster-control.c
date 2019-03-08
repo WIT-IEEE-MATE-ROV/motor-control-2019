@@ -6,6 +6,7 @@
 #include <string.h>
 #include <wiringPiI2C.h>
 #include "thruster-control.h"
+#include "pca9685.c"
 
 #define PIN_BASE 300
 #define MAX_PWM 4096
