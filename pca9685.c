@@ -25,9 +25,9 @@
  */
 
 #include "./WiringPi/wiringPi/wiringPi.h"
-#include "./WiringPi/wiringPi/wiringPiI2C.h"
+#include <wiringPiI2C.h>
 
-#include "./pca9685.h"
+#include "pca9685.h"
 
 // Setup registers
 #define PCA9685_MODE1 0x0

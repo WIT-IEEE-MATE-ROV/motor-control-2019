@@ -6,7 +6,6 @@
 #include <string.h>
 #include <wiringPiI2C.h>
 #include "thruster-control.h"
-#include "pca9685.c"
 
 #define PIN_BASE 300
 #define MAX_PWM 4096
@@ -85,13 +84,13 @@ bool do_thruster_movement(double goalval)
         double pwm;
         if(goalval > 0){ //goes "forward"
             pwm = (goalval*4095);
-            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm & 0x0FFF);
+            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm);
             return true;
         }
         else{  //goes "backward"
             pwm = (goalval*4095*(-1));
 		    //need to reverse the power/polarity
-            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm & 0x0FFF);
+            wiringPiI2CWriteReg16(I2C_ADDRESS, Whichami.pin, pwm);
             return false;
         }
     else{
