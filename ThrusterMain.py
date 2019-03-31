@@ -27,16 +27,18 @@ OUTDRV             = 0x04
 RESTART            = 0x80
 ALLCALL            = 0x01
 
-channel = 0                             # Channel to communicate with ESC
-freq = 400                              # Hertz
-wave_period = ((1/frequency) * 10^6)    # Period of one wave length in microseconds
-servo_min = 0.36                        # Min duty cycle
-servo_max = 0.84                        # Max duty cycle
-servo_mid = 0.6                         # Middle duty cycle
+channel = 11                            # Channel to communicate with ESC
+#freq = 400                              # Hertz
+servo_min = int(0.36 * 4096)            # Min duty cycle
+off_min = int((1-servo_min) * 4096)     # Min off time
+servo_max = int(0.84 * 4096)            # Max duty cycle
+off_max = int((1-servo_max) * 4096)     # Max off time
+servo_mid = int(0.6 * 4096)             # Middle duty cycle
+off_mid = int((1-servo_mid) * 4096)     # Middle off time
 
 pwm = Adafruit_PCA9685.PCA9685()
 
-pwm.setPWMFreq(freq)
+#pwm.setPWMFreq(freq)
 
 def PCA(channel, pulse_width):
     prescaleval = 25000000.0  # 25MHz
@@ -47,13 +49,13 @@ def PCA(channel, pulse_width):
     print(prescale)
 
 
-def start_ESC(channel, servo_min, servo_mid, servo_max, wave_period):
+def start_ESC(channel, servo_min, servo_mid, servo_max):
     if pwm is not 0 :
-        pwm.set_pwm(channel, servo_min, int(wave_period - servo_min))
+        pwm.set_pwm(channel, servo_min, off_min)
         time.sleep(1)
-        pwm.set_pwm(channel, servo_mid, int(wave_period - servo_mid))
+        pwm.set_pwm(channel, servo_mid, off_mid)
         time.sleep(1)
-        pwm.set_pwm(channel, servo_min, int(wave_period - servo_min))
-        time.sleep(1)   # Guess and check amount of time needed before sending values
+        pwm.set_pwm(channel, servo_min, off_min)
+        time.sleep(1)
 
-start_ESC(channel, servo_min, servo_mid, servo_max, wave_period)
+start_ESC(channel, servo_min, servo_mid, servo_max)
