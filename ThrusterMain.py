@@ -1,11 +1,8 @@
-# to do list
-# Establish ESC communitcation
-# Get PCA values
-#
-#
 from __future__ import division
 import time
 import Adafruit_PCA9685
+import math 
+
 # Registers/etc:
 PCA9685_ADDRESS    = 0x40
 MODE1              = 0x00
@@ -29,47 +26,34 @@ INVRT              = 0x10
 OUTDRV             = 0x04
 RESTART            = 0x80
 ALLCALL            = 0x01
-# other shit
-freq_hz = 50
-goalval = 1
-channel = 4
-servo_max = 150
-servo_min = 600
+
+channel = 0                             # Channel to communicate with ESC
+freq = 400                              # Hertz
+wave_period = ((1/frequency) * 10^6)    # Period of one wave length in microseconds
+servo_min = 0.36                        # Min duty cycle
+servo_max = 0.84                        # Max duty cycle
+servo_mid = 0.6                         # Middle duty cycle
 
 pwm = Adafruit_PCA9685.PCA9685()
 
-# Alternatively specify a different address and/or bus:
-#pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
+pwm.setPWMFreq(freq)
 
-
-def PCA(goalval,channel):
+def PCA(channel, pulse_width):
     prescaleval = 25000000.0  # 25MHz
     prescaleval /= 4096.0  # 12-bit
-    prescaleval /= float(freq_hz)
+    prescaleval /= float(freq)
     prescaleval -= 1.0
     prescale = int(math.floor(prescaleval + 0.5))# sets prescale value
     print(prescale)
-    if (goalval > 0) : # goes "forward"
-        pulse = (goalval * prescale )
-        pwm.set_pwm(0, 0, servo_min)
-        time.sleep(1)
-        pwm.set_pwm(0, 0, servo_max)
-        time.sleep(1)
-        pwm.set_pwm(channel, 0, pulse)
-    else:  # goes "backward"
-        pulse = (goalval * prescale)
-        pwm.set_pwm(0, 0, servo_min)
-        time.sleep(1)
-        pwm.set_pwm(0, 0, servo_max)
-        time.sleep(1)
-        pwm.set_pwm(channel, 0, pulse)
 
 
+def start_ESC(channel, servo_min, servo_mid, servo_max, wave_period):
+    if pwm is not 0 :
+        pwm.set_pwm(channel, servo_min, int(wave_period - servo_min))
+        time.sleep(1)
+        pwm.set_pwm(channel, servo_mid, int(wave_period - servo_mid))
+        time.sleep(1)
+        pwm.set_pwm(channel, servo_min, int(wave_period - servo_min))
+        time.sleep(1)   # Guess and check amount of time needed before sending values
 
-#def ESC(pwm):
- #   while (pwm != 0) :# place holder
-  #      pwm.set_pwm(0, 0, servo_min)
-   #     time.sleep(1)
-    #    pwm.set_pwm(0, 0, servo_max)
-     #   time.sleep(1)
-      #  pwm.set_pwm(channel, 0, pwm)
+start_ESC(channel, servo_min, servo_mid, servo_max, wave_period)
