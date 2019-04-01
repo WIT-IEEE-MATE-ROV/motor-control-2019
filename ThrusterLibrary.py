@@ -17,6 +17,13 @@ def calc_duty_cycle(val):                    # Input decimal percentage of duty 
    duty_cycle = int(duty_cycle * 4096)
    return duty_cycle
 
+def arm_duty(val):
+   arm_duty_cycle = int(val * 4096)
+   return arm_duty_cycle
+
+def arm_off(val):
+   arm_off_time = int((1-abs(val))*4096)
+   return arm_off_time
 
 def calc_off_time(val):
    off_time = int(val * .48)
@@ -27,17 +34,17 @@ def calc_off_time(val):
 
 def start_ALL_ESC():
    if pwm is not 0:
-       servo_min = calc_duty_cycle(0.36)
-       off_min = calc_off_time(0.36)
-       servo_mid = calc_duty_cycle(0.6)
-       off_mid = calc_off_time(0.6)
-       pwm.set_all_pwm(servo_min, off_min)
-       time.sleep(1)
-       pwm.set_all_pwm(servo_mid, off_mid)
-       time.sleep(1)
-       pwm.set_all_pwm(servo_min, off_min)
-       time.sleep(1)
-
+       servo_min = arm_duty(.36)
+       off_min = arm_off(.36)
+       servo_mid = arm_duty(0.6)
+       off_mid = arm_off(0.6)
+       for channel in range (3,12):
+           pwm.set_pwm(channel, servo_min, off_min)
+           time.sleep(1)
+           pwm.set_pwm(channel, servo_mid, off_mid)
+           time.sleep(1)
+           pwm.set_pwm(channel, servo_min, off_min)
+           time.sleep(1)
 
 def move(channel, val):
    duty_cycle = calc_duty_cycle(val)
