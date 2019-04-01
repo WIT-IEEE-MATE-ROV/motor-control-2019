@@ -41,11 +41,16 @@ def start_ALL_ESC():
         off_min = arm_off(.36)
         servo_mid = arm_duty(0.6)
         off_mid = arm_off(0.6)
-        for channel in range (3,12):
+
+        for channel in range (0,15):
             pwm.set_pwm(channel, servo_min, off_min)
             time.sleep(1)
+
+        for channel in range(0, 15):
             pwm.set_pwm(channel, servo_mid, off_mid)
             time.sleep(1)
+
+        for channel in range(0, 15):
             pwm.set_pwm(channel, servo_min, off_min)
             time.sleep(1)
 
