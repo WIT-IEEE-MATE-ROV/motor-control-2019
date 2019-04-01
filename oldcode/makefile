@@ -5,12 +5,19 @@ all :
 	make master
 	make motor
 	make thruster
+	make pca
+
+pca :
+	gcc -c pca9685.c $(stdflag)
 
 master :
 	gcc motor-master.c -o motor-master $(stdflag) $(objects)
 
 motor :
 	gcc subsystem-motor.c -o subsystem-motor $(stdflag) $(objects)
+
+#thruster :
+#	gcc thruster-control.c -o thruster-control $(stdflag) -I./WiringPi/wiringPi/wiringPi.c -I./WiringPi/wiringPi/wiringPiI2C.c $(objects) ./pca9685.o
 
 thruster :
 	gcc thruster-control.c -o thruster-control $(stdflag) $(objects)

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "../rov-core/utils.h"
+#include "../rov-core/rov-util.h"
 #include "../comms/nugget-api.h"
 #include "../rovlog/rovlog.h"
 
@@ -26,21 +26,6 @@ int main(void) {
     rl_setfile("./rovlog.txt");
     rl_setsource("motor-master");
     rl_setlevel(INFO);
-
-    rovlog(INFO, "Spawning children..."); // TODO: Replace with logger
-
-    spawnchild("./thruster-control", "T_H_FRONTLEFT");
-    spawnchild("./thruster-control", "T_H_FRONTRIGHT");
-    spawnchild("./thruster-control", "T_H_BACKLEFT");
-    spawnchild("./thruster-control", "T_H_BACKRIGHT");
-    spawnchild("./thruster-control", "T_V_LEFT");
-    spawnchild("./thruster-control", "T_V_RIGHT");
-    spawnchild("./thruster-control", "T_V_FRONT");
-    spawnchild("./thruster-control", "T_V_BACK");
-
-    // Not yet implemented:
-    //spawnchild("./subsystem-motor", "MANIPULATOR");
-    rovlog(INFO, "Done spawning children, starting sensor listeners to do PID stuff");
 
     LISTENER accel_x = get_listener("sensor/accelerometer/x", _double);
     LISTENER accel_y = get_listener("sensor/accelerometer/y", _double);
