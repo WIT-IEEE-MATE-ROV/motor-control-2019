@@ -28,7 +28,7 @@ RESTART            = 0x80
 ALLCALL            = 0x01
 
 channel = 11                            # Channel to communicate with ESC
-#freq = 400                              # Hertz
+#freq = 400                             # Hertz
 servo_min = int(0.36 * 4096)            # Min duty cycle
 off_min = int((1-servo_min) * 4096)     # Min off time
 servo_max = int(0.84 * 4096)            # Max duty cycle

@@ -20,8 +20,12 @@ pwm = Adafruit_PCA9685.PCA9685()
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
 # Configure min and max servo pulse lengths
-servo_min = 150  # Min pulse length out of 4096
-servo_max = 600  # Max pulse length out of 4096
+channel = 0         # Channel to communicate with ESC
+frequency = 400     # Hertz (1/seconds)
+wave_period = ((1/frequency) * 10^6)  # Period of one wave length in microseconds
+servo_min = 900     # Min time up in microseconds
+servo_max = 2100    # Max time down in microseconds
+servo_mid = 1500    # Medium pulse length in microseconds
 
 # Helper function to make setting a servo pulse width simpler.
 def set_servo_pulse(channel, pulse):
@@ -32,7 +36,7 @@ def set_servo_pulse(channel, pulse):
     print('{0}us per bit'.format(pulse_length))
     pulse *= 1000
     pulse //= pulse_length
-    pwm.set_pwm(channel, 0, pulse)
+    pwm.set_pwm(channel, time_up, time_down)
 
 
 # Set frequency to 60hz, good for servos.
@@ -41,7 +45,9 @@ pwm.set_pwm_freq(60)
 print('Moving servo on channel 0, press Ctrl-C to quit...')
 while True:
     # Move servo on channel O between extremes.
-    pwm.set_pwm(0, 0, servo_min)
+    pwm.set_pwm(channel, servo_min, int(wave_period-servo_min))
     time.sleep(1)
-    pwm.set_pwm(0, 0, servo_max)
+    pwm.set_pwm(channel, servo_max, int(wave_period-servo_max))
+    time.sleep(1)
+    pwm.set_pwm(channel, servo_mid, int(wave_period-servo_mid))
     time.sleep(1)
