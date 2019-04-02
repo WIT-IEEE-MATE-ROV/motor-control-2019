@@ -8,13 +8,13 @@ import Adafruit_PCA9685
 frequency = 400                              # Hertz
 
 pwm = Adafruit_PCA9685.PCA9685()
-pwm.setPWMFreq(frequency)
+#pwm.setPWMFreq(frequency)
 
 
 def calc_duty_cycle(val):                    # Input decimal percentage of duty cycle
-    duty_cycle = int(val * .48)
-    duty_cycle = int(.36 + duty_cycle)
-    duty_cycle = int(duty_cycle * 4096)
+    duty_cycle = float(val * .48)
+    duty_cycle = float(.36 + duty_cycle)
+    duty_cycle = float(duty_cycle * 4096)
     return duty_cycle
 
 
@@ -29,9 +29,9 @@ def arm_off(val):
 
 
 def calc_off_time(val):
-    off_time = int(val * .48)
-    off_time = int(.36 + off_time)
-    off_time = int((1 - abs(off_time)) * 4096)
+    off_time = float(val * .48)
+    off_time = float(.36 + off_time)
+    off_time = float((1 - abs(off_time)) * 4096)
     return off_time
 
 
@@ -46,15 +46,19 @@ def start_ALL_ESC():
             pwm.set_pwm(channel, servo_min, off_min)
             time.sleep(1)
 
-        for channel in range(0, 15):
             pwm.set_pwm(channel, servo_mid, off_mid)
             time.sleep(1)
 
-        for channel in range(0, 15):
             pwm.set_pwm(channel, servo_min, off_min)
             time.sleep(1)
 
+            pwm.set_pwm(channel, servo_mid, off_mid)
+
+                
+
 def move(channel, val):
-    duty_cycle = calc_duty_cycle(val)
-    off_time = calc_off_time(val)
+    duty_cycle = int(calc_duty_cycle(val))
+    off_time = int(calc_off_time(val))
     pwm.set_pwm(channel, duty_cycle, off_time)
+
+
