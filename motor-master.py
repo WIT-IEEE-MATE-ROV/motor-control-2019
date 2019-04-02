@@ -5,7 +5,7 @@ import ThrusterLibrary as TH
 
 TH.start_ALL_ESC()
 
-HOST = 'localhost'
+HOST = '0.0.0.0'
 PORT = 2013
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
@@ -58,19 +58,16 @@ def arrmult(const, arra):
 
 
 def arrdiv(arra, const):
-    if const is 0.0:
-        return [[0, 0, 0, 0], [0, 0, 0, 0]]
-
     try:
-        a = 0 if arra[0][0] == 0 else arra[0][0] / const
-        b = 0 if arra[0][1] == 0 else arra[0][0] / const
-        c = 0 if arra[0][2] == 0 else arra[0][0] / const
-        d = 0 if arra[0][3] == 0 else arra[0][0] / const
+        a = arra[0][0] / const
+        b = arra[0][1] / const
+        c = arra[0][2] / const
+        d = arra[0][3] / const
 
-        e = 0 if arra[1][0] == 0 else arra[0][0] / const
-        f = 0 if arra[1][1] == 0 else arra[0][0] / const
-        g = 0 if arra[1][2] == 0 else arra[0][0] / const
-        h = 0 if arra[1][3] == 0 else arra[0][0] / const
+        e = arra[1][0] / const
+        f = arra[1][1] / const
+        g = arra[1][2] / const
+        h = arra[1][3] / const
 
         return [
             [
@@ -81,6 +78,7 @@ def arrdiv(arra, const):
             ]
         ]
     except ZeroDivisionError:
+        print("0div")
         return [[0, 0, 0, 0], [0, 0, 0, 0]]
 
 
@@ -133,14 +131,15 @@ def hatarr(hat):
 
 
 def motorrun(M):
-    TH.move(1, M[0][1])
-    TH.move(2, M[0][2])
-    TH.move(3, M[0][3])
-    TH.move(4, M[0][4])
-    TH.move(5, M[1][1])
-    TH.move(6, M[1][2])
-    TH.move(7, M[1][3])
-    TH.move(8, M[1][4])
+    TH.move(1, M[0][1] / arrmax)
+    TH.move(2, M[0][2] / arrmax)
+    TH.move(3, M[0][3] / arrmax)
+    TH.move(4, M[0][4] / arrmax)
+    TH.move(5, M[1][1] / arrmax)
+    TH.move(6, M[1][2] / arrmax)
+    TH.move(7, M[1][3] / arrmax)
+    TH.move(8, M[1][4] / arrmax)
+    pass
 
 
 while True:
@@ -169,7 +168,12 @@ while True:
         M = arradd(M, arrmult(jla, arrz))
 
     # print(arrmax(M))
-    M = arrdiv(M, arrmax(M))
+    amax = arrmax(M)
+    print(amax)
+    if arrmax(M) >= 1:
+        print("maxing")
+        M = arrdiv(M, amax)
+    # M = arrdiv(M, 2)
     printarr(M)
     motorrun(M)
     conn.send(data)
