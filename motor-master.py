@@ -131,14 +131,14 @@ def hatarr(hat):
 
 
 def motorrun(M):
-    TH.move(1, M[0][1] / arrmax)
-    TH.move(2, M[0][2] / arrmax)
-    TH.move(3, M[0][3] / arrmax)
-    TH.move(4, M[0][4] / arrmax)
-    TH.move(5, M[1][1] / arrmax)
-    TH.move(6, M[1][2] / arrmax)
-    TH.move(7, M[1][3] / arrmax)
-    TH.move(8, M[1][4] / arrmax)
+    TH.move(1, M[0][1])
+    TH.move(2, M[0][2])
+    TH.move(3, M[0][3])
+    TH.move(4, M[0][4])
+    TH.move(5, M[1][1])
+    TH.move(6, M[1][2])
+    TH.move(7, M[1][3])
+    TH.move(8, M[1][4])
     pass
 
 
