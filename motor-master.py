@@ -1,0 +1,211 @@
+# motor-master
+# @cst <chris thierauf chris@cthierauf.com>
+import socket, pickle
+import ThrusterLibrary as TH
+
+print("Started!")
+
+HOST = '0.0.0.0'
+PORT = 2015
+
+print("Attempting socket")
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((HOST, PORT))
+s.listen(1)
+conn, addr = s.accept()
+
+print("Socket accepted!")
+
+TH.start_ALL_ESC()
+
+arrx = [
+        [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, -1.0, 1.0]  # x
+    ]
+
+arry = [
+        [0.0, 0.0, 0.0, 0.0], [1.0, 1.0, -1.0, -1.0]  # y
+    ]
+
+arrz = [
+        [1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]    # z
+    ]
+
+arrr = [
+        [0.0, 1.0, 0.0, 1.0], [0.0, 0.0, 0.0, 0.0]    # r
+    ]
+
+arrp = [
+        [1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 0.0]    # p
+    ]
+
+arrc = [
+        [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, 1.0, -1.0]  # c
+    ]
+
+def printarr(arra):
+    print("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(arra[0][0], arra[0][1], arra[0][2], arra[0][3], arra[1][0], arra[1][1], arra[1][2], arra[1][3]))
+
+
+def arrmult(const, arra):
+    return [
+        [
+            arra[0][0] * const,
+            arra[0][1] * const,
+            arra[0][2] * const,
+            arra[0][3] * const
+        ],
+        [
+            arra[1][0] * const,
+            arra[1][1] * const,
+            arra[1][2] * const,
+            arra[1][3] * const
+        ]
+    ]
+
+
+def arrdiv(arra, const):
+    try:
+        a = arra[0][0] / const
+        b = arra[0][1] / const
+        c = arra[0][2] / const
+        d = arra[0][3] / const
+
+        e = arra[1][0] / const
+        f = arra[1][1] / const
+        g = arra[1][2] / const
+        h = arra[1][3] / const
+
+        return [
+            [
+                a, b, c, d
+            ],
+            [
+                e, f, g, h
+            ]
+        ]
+    except ZeroDivisionError:
+        print("0div")
+        return [[0, 0, 0, 0], [0, 0, 0, 0]]
+
+
+def arrmax(arra):
+    rmax = -2
+    for i in range(0, 3):
+        rmax = max(arra[0][i], rmax)
+    for i in range(0, 3):
+        rmax = max(arra[1][i], rmax)
+    return rmax
+
+
+def arradd(arra, arrb):
+    return [
+        [
+            arra[0][0] + arrb[0][0],
+            arra[0][1] + arrb[0][1],
+            arra[0][2] + arrb[0][2],
+            arra[0][3] + arrb[0][3]
+        ],
+        [
+            arra[1][0] + arrb[1][0],
+            arra[1][1] + arrb[1][1],
+            arra[1][2] + arrb[1][2],
+            arra[1][3] + arrb[1][3]
+
+        ]
+    ]
+
+
+def arraddint(arra, i):
+    return [
+        [
+            arra[0][0] + i,
+            arra[0][1] + i,
+            arra[0][2] + i,
+            arra[0][3] + i
+        ],
+        [
+            arra[1][0] + i,
+            arra[1][1] + i,
+            arra[1][2] + i,
+            arra[1][3] + i
+
+        ]
+    ]
+
+
+def hatarr(hat):
+    if hat == 0:
+        return [[0, 0, 0, 0], [0, 0, 0, 0]]
+    if hat == 1:
+        return [[0.1, 0, 0, 0], [0, 0, 0, 0]]
+    if hat == 2:
+        return [[0, 0, 0, 0], [0, 0.1, 0, 0]]
+    if hat == 3:
+        return [[0, 0.1, 0, 0], [0, 0, 0, 0]]
+    if hat == 4:
+        return [[0, 0, 0, 0], [0, 0, 0.1, 0]]
+    if hat == 5:
+        return [[0, 0, 0.1, 0], [0, 0, 0, 0]]
+    if hat == 6:
+        return [[0, 0, 0, 0], [0, 0, 0, 0.1]]
+    if hat == 7:
+        return [[0, 0, 0, 0.1], [0, 0, 0, 0]]
+    if hat == 8:
+        return [[0, 0, 0, 0], [0.1, 0, 0, 0]]
+
+
+def motorrun(M):
+    TH.move(11, M[0][0])
+    TH.move(10, M[0][1])
+    TH.move(4, M[0][2])
+    TH.move(9, M[0][3])
+    TH.move(8, M[1][0])
+    TH.move(6, M[1][1])
+    TH.move(7, M[1][2])
+    TH.move(5, M[1][3])
+    pass
+
+try:
+    while True:
+        M = [
+            [
+                0.0, 0.0, 0.0, 0.0
+            ],
+            [
+                0.0, 0.0, 0.0, 0.0
+            ]
+        ]
+        data = conn.recv(4096)
+        if not data: break
+        fromsurface = pickle.loads(data)
+    
+        jha = fromsurface[0][0]
+        jva = -1*fromsurface[0][1]
+        jta = fromsurface[0][2]
+        jla = -1*fromsurface[0][3]
+    
+        M = hatarr(fromsurface[2][0])
+        if fromsurface[1][0] is 0:  # Disables input from joystick if trigger is held
+            M = arradd(M, arrmult(jha, arrx))
+            M = arradd(M, arrmult(jva, arry))
+            M = arradd(M, arrmult(jta, arrr))
+            M = arradd(M, arrmult(jla, arrz))
+    
+        # print(arrmax(M))
+        amax = arrmax(M)
+        print(amax)
+        if arrmax(M) >= 1:
+            print("maxing")
+            M = arrdiv(M, amax)
+        M = arraddint(M, 1)
+        M = arrdiv(M, 2)
+        printarr(M)
+#       for i in range(0, 15):
+#           TH.move(i, .6)
+        motorrun(M)
+
+        conn.send(data)
+except:
+    for i in range(0, 15):
+        TH.move(i, .5)
+conn.close()
