@@ -56,3 +56,4 @@ motor-master
 
 # Operating System stuff
 *.swp
+__pycache__/
