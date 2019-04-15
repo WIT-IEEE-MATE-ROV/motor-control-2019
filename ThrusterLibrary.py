@@ -10,7 +10,8 @@ pwm.frequency = frequency
 r_min = 0
 r_max = 1
 t_min = 0.6855
-t_max = 0.8155
+#t_max = 0.8155
+t_max = 0.816
 
 def calc_duty_cycle(val): #FIX
    val = ((val - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min

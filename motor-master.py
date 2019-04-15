@@ -2,11 +2,15 @@
 # @cst <chris thierauf chris@cthierauf.com>
 import socket, pickle
 import ThrusterLibrary as TH
-
+import RPi.GPIO as gpio
 print("Started!")
 
 HOST = '0.0.0.0'
 PORT = 2015
+STEPPER_DIR_PIN = 27
+STEPPER_PULSE_PIN = 17
+PUMP_ENABLE_PIN = 5
+STEPPER_PULSE_STATE = False
 
 print("Attempting socket")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,9 +18,16 @@ s.bind((HOST, PORT))
 s.listen(1)
 conn, addr = s.accept()
 
-print("Socket accepted!")
+print("Socket accepted")
+print("Starting ESC's")
 
 TH.start_ALL_ESC()
+
+print("Setting up GPIO stuff")
+#gpio.setmode(gpio.BOARD)
+#gpio.setup(STEPPER_DIR_PIN, gpio.OUT)
+#gpio.setup(STEPPER_PULSE_PIN, gpio.OUT)
+#gpio.setup(PUMP_ENABLE_PIN, gpio.OUT) 
 
 arrx = [
         [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, -1.0, 1.0]  # x
@@ -41,6 +52,12 @@ arrp = [
 arrc = [
         [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, 1.0, -1.0]  # c
     ]
+
+arr_corrective = [
+        [1, 1, 1, 1], [1, 1, 1, -1]
+    ]
+
+print("Done with init arrays")
 
 def printarr(arra):
     print("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(arra[0][0], arra[0][1], arra[0][2], arra[0][3], arra[1][0], arra[1][1], arra[1][2], arra[1][3]))
@@ -115,6 +132,24 @@ def arradd(arra, arrb):
     ]
 
 
+def arrmultarr(arra, arrb):
+    return [
+        [
+            arra[0][0] * arrb[0][0],
+            arra[0][1] * arrb[0][1],
+            arra[0][2] * arrb[0][2],
+            arra[0][3] * arrb[0][3]
+        ],
+        [
+            arra[1][0] * arrb[1][0],
+            arra[1][1] * arrb[1][1],
+            arra[1][2] * arrb[1][2],
+            arra[1][3] * arrb[1][3]
+
+        ]
+    ]
+
+
 def arraddint(arra, i):
     return [
         [
@@ -134,24 +169,25 @@ def arraddint(arra, i):
 
 
 def hatarr(hat):
+    hatconst = 0.2
     if hat == 0:
         return [[0, 0, 0, 0], [0, 0, 0, 0]]
     if hat == 1:
-        return [[0.1, 0, 0, 0], [0, 0, 0, 0]]
+        return [[hatconst, 0, 0, 0], [0, 0, 0, 0]]
     if hat == 2:
-        return [[0, 0, 0, 0], [0, 0.1, 0, 0]]
+        return [[0, 0, 0, 0], [0, hatconst, 0, 0]]
     if hat == 3:
-        return [[0, 0.1, 0, 0], [0, 0, 0, 0]]
+        return [[0, hatconst, 0, 0], [0, 0, 0, 0]]
     if hat == 4:
-        return [[0, 0, 0, 0], [0, 0, 0.1, 0]]
+        return [[0, 0, 0, 0], [0, 0, hatconst, 0]]
     if hat == 5:
-        return [[0, 0, 0.1, 0], [0, 0, 0, 0]]
+        return [[0, 0, hatconst, 0], [0, 0, 0, 0]]
     if hat == 6:
-        return [[0, 0, 0, 0], [0, 0, 0, 0.1]]
+        return [[0, 0, 0, 0], [0, 0, 0, hatconst]]
     if hat == 7:
-        return [[0, 0, 0, 0.1], [0, 0, 0, 0]]
+        return [[0, 0, 0, hatconst], [0, 0, 0, 0]]
     if hat == 8:
-        return [[0, 0, 0, 0], [0.1, 0, 0, 0]]
+        return [[0, 0, 0, 0], [hatconst, 0, 0, 0]]
 
 
 def motorrun(M):
@@ -188,24 +224,54 @@ try:
         if fromsurface[1][0] is 0:  # Disables input from joystick if trigger is held
             M = arradd(M, arrmult(jha, arrx))
             M = arradd(M, arrmult(jva, arry))
-            M = arradd(M, arrmult(jta, arrr))
+            M = arradd(M, arrmult(jta, arrc))
             M = arradd(M, arrmult(jla, arrz))
-    
-        # print(arrmax(M))
+            
+            # Use buttons on joystick face to handle roll, pitch
+            if fromsurface[1][2] is 1:
+                M = arradd(M, arrmult(.2, arrp))
+            if fromsurface[1][3] is 1:
+                M = arradd(M, arrmult(-.2, arrp))
+            if fromsurface[1][4] is 1:
+                M = arradd(M, arrmult(.2, arrr))
+            if fromsurface[1][5] is 1:
+                M = arradd(M, arrmult(-.2, arrr))
+ 
+        # Use the thumb button as 'boost mode'
+        if fromsurface[1][1] is not 1:
+            M = arrdiv(M, 2)
+
+        # Correct for things being backwards or poorly toleranced
+        M = arrmultarr(arr_corrective, M)
+  
+        # Matrix normalization
         amax = arrmax(M)
-        print(amax)
         if arrmax(M) >= 1:
-            print("maxing")
             M = arrdiv(M, amax)
         M = arraddint(M, 1)
         M = arrdiv(M, 2)
+
+        # Display what we're about to try here
         printarr(M)
-#       for i in range(0, 15):
-#           TH.move(i, .6)
+ 
+        # Matrix is now values of 0 to 1, with each index representing a thruster
         motorrun(M)
+
+        ## Do motor steps via GPIO
+        # Open
+        if fromsurface[1][6] is 1:
+            pass
+
+        # Close
+        if fromsurface[1][7] is 1:
+            pass
+
+        # Pump
+        if fromsurface[1][10] is 1:
+            pass
 
         conn.send(data)
 except:
     for i in range(0, 15):
         TH.move(i, .5)
-conn.close()
+    conn.close()

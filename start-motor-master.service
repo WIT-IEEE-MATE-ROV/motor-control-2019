@@ -1,0 +1,13 @@
+[Unit]
+Description=start-motor-master
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/rov/motor-control/start.sh
+User=nugget
+WorkingDirectory=/rov/motor-control
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
