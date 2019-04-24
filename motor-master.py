@@ -3,14 +3,17 @@
 import socket, pickle
 import ThrusterLibrary as TH
 import RPi.GPIO as gpio
+from time import sleep
 print("Started!")
 
 HOST = '0.0.0.0'
 PORT = 2015
-STEPPER_DIR_PIN = 27
-STEPPER_PULSE_PIN = 17
-PUMP_ENABLE_PIN = 5
-STEPPER_PULSE_STATE = False
+STEPPER_DIR_PIN = 13
+STEPPER_PULSE_PIN = 11
+PUMP_ENABLE_PIN = 29
+STEPPER_PULSE = 0
+PUMP_STATE = False
+DELAYSTEP = 3
 
 print("Attempting socket")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,10 +27,10 @@ print("Starting ESC's")
 TH.start_ALL_ESC()
 
 print("Setting up GPIO stuff")
-#gpio.setmode(gpio.BOARD)
-#gpio.setup(STEPPER_DIR_PIN, gpio.OUT)
-#gpio.setup(STEPPER_PULSE_PIN, gpio.OUT)
-#gpio.setup(PUMP_ENABLE_PIN, gpio.OUT) 
+gpio.setmode(gpio.BOARD)
+gpio.setup(STEPPER_DIR_PIN, gpio.OUT)
+gpio.setup(STEPPER_PULSE_PIN, gpio.OUT)
+gpio.setup(PUMP_ENABLE_PIN, gpio.OUT) 
 
 arrx = [
         [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, -1.0, 1.0]  # x
@@ -54,10 +57,8 @@ arrc = [
     ]
 
 arr_corrective = [
-        [1, 1, 1, 1], [1, 1, 1, -1]
+        [1, -1, 1, -1], [1, 1, 1, 1]
     ]
-
-print("Done with init arrays")
 
 def printarr(arra):
     print("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(arra[0][0], arra[0][1], arra[0][2], arra[0][3], arra[1][0], arra[1][1], arra[1][2], arra[1][3]))
@@ -202,6 +203,10 @@ def motorrun(M):
     pass
 
 try:
+    sleep(1)
+    for i in range(0, 15):
+        TH.move(i, .5)
+
     while True:
         M = [
             [
@@ -236,14 +241,15 @@ try:
                 M = arradd(M, arrmult(.2, arrr))
             if fromsurface[1][5] is 1:
                 M = arradd(M, arrmult(-.2, arrr))
- 
-        # Use the thumb button as 'boost mode'
-        if fromsurface[1][1] is not 1:
-            M = arrdiv(M, 2)
+# 
+#        # Use the thumb button as 'boost mode'
+#        if fromsurface[1][1] is not 1:
+#            M = arrdiv(M, 2)
+#   
 
         # Correct for things being backwards or poorly toleranced
         M = arrmultarr(arr_corrective, M)
-  
+
         # Matrix normalization
         amax = arrmax(M)
         if arrmax(M) >= 1:
@@ -253,25 +259,41 @@ try:
 
         # Display what we're about to try here
         printarr(M)
- 
+
         # Matrix is now values of 0 to 1, with each index representing a thruster
         motorrun(M)
 
         ## Do motor steps via GPIO
         # Open
         if fromsurface[1][6] is 1:
-            pass
+            if STEPPER_PULSE is DELAYSTEP:
+                print("STEP+")
+                gpio.output(STEPPER_DIR_PIN, gpio.HIGH)
+                gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
+                STEPPER_PULSE = 0
+            STEPPER_PULSE += 1
 
-        # Close
         if fromsurface[1][7] is 1:
-            pass
+            if STEPPER_PULSE is DELAYSTEP:
+                print("STEP-")
+                gpio.output(STEPPER_DIR_PIN, gpio.LOW)
+                gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
+                STEPPER_PULSE = 0
+            STEPPER_PULSE += 1
 
         # Pump
         if fromsurface[1][10] is 1:
-            pass
+            print("PUMP")
+            PUMP_STATE = True
+            gpio.output(PUMP_ENABLE_PIN, gpio.HIGH)
+        if fromsurface[1][10] is not 1 and PUMP_STATE == True:
+            PUMP_STATE = False
+            gpio.output(PUMP_ENABLE_PIN, gpio.LOW)
 
         conn.send(data)
-except:
+except Exception as e:
+    print("Shutting down!")
+    print(e)
     for i in range(0, 15):
         TH.move(i, .5)
     conn.close()
