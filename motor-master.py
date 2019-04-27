@@ -14,6 +14,8 @@ PUMP_ENABLE_PIN = 29
 STEPPER_PULSE = 0
 PUMP_STATE = False
 DELAYSTEP = 3
+DUMPER_OPENPWM = 0.02
+DUMPER_CLOSEPWM = 0.07
 
 print("Attempting socket")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -241,11 +243,11 @@ try:
                 M = arradd(M, arrmult(.2, arrr))
             if fromsurface[1][5] is 1:
                 M = arradd(M, arrmult(-.2, arrr))
-# 
-#        # Use the thumb button as 'boost mode'
-#        if fromsurface[1][1] is not 1:
-#            M = arrdiv(M, 2)
-#   
+  
+        # Use the thumb button as 'boost mode'
+        if fromsurface[1][1] is not 1:
+            M = arrdiv(M, 2)
+
 
         # Correct for things being backwards or poorly toleranced
         M = arrmultarr(arr_corrective, M)
@@ -266,20 +268,14 @@ try:
         ## Do motor steps via GPIO
         # Open
         if fromsurface[1][6] is 1:
-            if STEPPER_PULSE is DELAYSTEP:
-                print("STEP+")
-                gpio.output(STEPPER_DIR_PIN, gpio.HIGH)
-                gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
-                STEPPER_PULSE = 0
-            STEPPER_PULSE += 1
+            gpio.output(STEPPER_DIR_PIN, gpio.HIGH)
+            gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
+            STEPPER_PULSE = not STEPPER_PULSE
 
         if fromsurface[1][7] is 1:
-            if STEPPER_PULSE is DELAYSTEP:
-                print("STEP-")
-                gpio.output(STEPPER_DIR_PIN, gpio.LOW)
-                gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
-                STEPPER_PULSE = 0
-            STEPPER_PULSE += 1
+            gpio.output(STEPPER_DIR_PIN, gpio.LOW)
+            gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
+            STEPPER_PULSE = not STEPPER_PULSE
 
         # Pump
         if fromsurface[1][10] is 1:
@@ -289,6 +285,12 @@ try:
         if fromsurface[1][10] is not 1 and PUMP_STATE == True:
             PUMP_STATE = False
             gpio.output(PUMP_ENABLE_PIN, gpio.LOW)
+
+        # Dumper
+        if fromsurface[1][11] is 1:
+            TH.move(0, DUMPER_OPENPWM)
+        else:
+            TH.move(0, DUMPER_CLOSEPWM)
 
         conn.send(data)
 except Exception as e:

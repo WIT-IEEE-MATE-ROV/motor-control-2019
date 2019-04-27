@@ -9,9 +9,13 @@ pwm.frequency = frequency
 
 r_min = 0
 r_max = 1
-t_min = 0.6855
-#t_max = 0.8155
-t_max = 0.816
+t_min = 0.682
+#t_min = 0.68
+t_max = 0.813
+#t_max = 0.816
+#t_max = 0.817
+t_mid = (t_max + t_min)/2
+
 
 def calc_duty_cycle(val): #FIX
    val = ((val - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min
@@ -28,6 +32,7 @@ def calc_off_time(val): #FIX
 
 
 def start_ALL_ESC():
+#   print t_mid
    for channel in range (0,15):
       move(channel,1)
       time.sleep(.1)
@@ -51,3 +56,8 @@ def move(channel, val):
    duty_cycle = calc_duty_cycle(val)
    off_time = calc_off_time(val)
    pwm.set_pwm(channel, off_time, duty_cycle )
+
+def Stop_All():
+   for channel in range (0,15):
+      move(channel, .5)
+      time.sleep(.1)
