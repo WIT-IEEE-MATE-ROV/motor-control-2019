@@ -288,9 +288,9 @@ try:
 
         # Dumper
         if fromsurface[1][11] is 1:
-            TH.move(0, DUMPER_OPENPWM)
+            TH.move(0, .5)
         else:
-            TH.move(0, DUMPER_CLOSEPWM)
+            TH.move(0, 1.1)
 
         conn.send(data)
 except Exception as e:
