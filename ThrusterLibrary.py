@@ -14,11 +14,25 @@ t_max = 0.83
 t_mid = (t_max + t_min)/2
 
 
+def calc_duty_cycle_noscale(val): #FIX
+#   print("On time  is ", val)
+   duty_cycle = int(val * 4096)
+   return duty_cycle
+
+
+def calc_off_time_noscale(val): #FIX
+   val = 1 - val
+#   print("Off time is " , val)   
+   off_time = int(val * 4096)
+   return off_time
+
+
 def calc_duty_cycle(val): #FIX
    val = ((val - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min
 #   print("On time  is ", val)
    duty_cycle = int(val * 4096)
    return duty_cycle
+
 
 def calc_off_time(val): #FIX
    val = ((val - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min
@@ -30,7 +44,7 @@ def calc_off_time(val): #FIX
 
 def start_ALL_ESC():
 #   print t_mid
-   move(0, 1.1)
+   move(0, .85) # The dumper is on channel 0, so we don't want to initialize this
    for channel in range (1,15):
       move(channel,1)
       time.sleep(.1)
