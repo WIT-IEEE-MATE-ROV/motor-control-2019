@@ -8,9 +8,12 @@ print("Started!")
 
 HOST = '0.0.0.0'
 PORT = 2015
+
 STEPPER_DIR_PIN = 13
 STEPPER_PULSE_PIN = 11
 PUMP_ENABLE_PIN = 29
+REFERENCE_PIN = 35
+
 STEPPER_PULSE = 0
 PUMP_STATE = False
 DELAYSTEP = 3
@@ -33,6 +36,8 @@ gpio.setmode(gpio.BOARD)
 gpio.setup(STEPPER_DIR_PIN, gpio.OUT)
 gpio.setup(STEPPER_PULSE_PIN, gpio.OUT)
 gpio.setup(PUMP_ENABLE_PIN, gpio.OUT) 
+gpio.setup(REFERENCE_PIN, gpio.OUT)
+gpio.output(REFERENCE_PIN, gpio.HIGH)
 
 arrx = [
         [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, -1.0, 1.0]  # x
@@ -265,17 +270,19 @@ try:
         # Matrix is now values of 0 to 1, with each index representing a thruster
         motorrun(M)
 
-        ## Do motor steps via GPIO
         # Open
         if fromsurface[1][6] is 1:
             gpio.output(STEPPER_DIR_PIN, gpio.HIGH)
-            gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
-            STEPPER_PULSE = not STEPPER_PULSE
+            TH.send(15, .5)
+        else:
+            TH.send(15, 0)
 
+        # Close
         if fromsurface[1][7] is 1:
             gpio.output(STEPPER_DIR_PIN, gpio.LOW)
-            gpio.output(STEPPER_PULSE_PIN, STEPPER_PULSE)
-            STEPPER_PULSE = not STEPPER_PULSE
+            TH.send(15, .5)
+        else:
+            TH.send(15, 0)
 
         # Pump
         if fromsurface[1][10] is 1:

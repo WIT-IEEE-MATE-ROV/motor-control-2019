@@ -45,13 +45,13 @@ def calc_off_time(val): #FIX
 def start_ALL_ESC():
 #   print t_mid
    move(0, .85) # The dumper is on channel 0, so we don't want to initialize this
-   for channel in range (1,15):
+   for channel in range (1,14):
       move(channel,1)
       time.sleep(.1)
-   for channel in range (1,15):
+   for channel in range (1,14):
       move(channel,0)
       time.sleep(.1)
-   for channel in range (1,15):
+   for channel in range (1,14):
       move(channel,.5)
       time.sleep(.1)
 
