@@ -8,9 +8,12 @@ print("Started!")
 
 HOST = '0.0.0.0'
 PORT = 2015
+
 STEPPER_DIR_PIN = 13
 STEPPER_PULSE_PIN = 11
 PUMP_ENABLE_PIN = 29
+REFERENCE_PIN = 35
+
 STEPPER_PULSE = 0
 PUMP_STATE = False
 DELAYSTEP = 3
@@ -33,7 +36,8 @@ gpio.setmode(gpio.BOARD)
 gpio.setup(STEPPER_DIR_PIN, gpio.OUT)
 gpio.setup(STEPPER_PULSE_PIN, gpio.OUT)
 gpio.setup(PUMP_ENABLE_PIN, gpio.OUT) 
-
+gpio.setup(REFERENCE_PIN, gpio.OUT)
+gpio.output(REFERENCE_PIN, gpio.HIGH)
 arrx = [
         [0.0, 0.0, 0.0, 0.0], [1.0, -1.0, -1.0, 1.0]  # x
     ]
