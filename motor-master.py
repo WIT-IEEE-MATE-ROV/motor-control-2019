@@ -16,9 +16,11 @@ REFERENCE_PIN = 35
 
 STEPPER_PULSE = 0
 PUMP_STATE = False
+MANIPULATOR_STATE = False
 DELAYSTEP = 3
 DUMPER_OPENPWM = 0.02
 DUMPER_CLOSEPWM = 0.07
+BOOST_DIV = 2
 
 print("Attempting socket")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,8 +66,13 @@ arrc = [
     ]
 
 arr_corrective = [
-        [1, -1, 1, -1], [1, 1, 1, 1]
+        [1, -1, 1, -1], [-1, -1, 1, -1]
     ]
+
+BOOST_ARR = [
+        [False, False, False, False], [True, True, True, True]
+    ]
+
 
 def printarr(arra):
     print("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(arra[0][0], arra[0][1], arra[0][2], arra[0][3], arra[1][0], arra[1][1], arra[1][2], arra[1][3]))
@@ -111,6 +118,31 @@ def arrdiv(arra, const):
     except ZeroDivisionError:
         print("0div")
         return [[0, 0, 0, 0], [0, 0, 0, 0]]
+
+def arrdiv_boost(arra):
+    a = 1 if BOOST_ARR[0][0] else BOOST_DIV
+    b = 1 if BOOST_ARR[0][1] else BOOST_DIV
+    c = 1 if BOOST_ARR[0][2] else BOOST_DIV
+    d = 1 if BOOST_ARR[0][3] else BOOST_DIV
+    e = 1 if BOOST_ARR[1][0] else BOOST_DIV
+    f = 1 if BOOST_ARR[1][1] else BOOST_DIV
+    g = 1 if BOOST_ARR[1][2] else BOOST_DIV
+    h = 1 if BOOST_ARR[1][3] else BOOST_DIV
+
+    return [
+        [
+            arra[0][0]/a,
+            arra[0][1]/b,
+            arra[0][2]/c,
+            arra[0][3]/d
+        ],
+        [
+            arra[1][0]/e,
+            arra[1][1]/f,
+            arra[1][2]/g,
+            arra[1][3]/h
+        ]
+    ]
 
 
 def arrmax(arra):
@@ -251,7 +283,7 @@ try:
   
         # Use the thumb button as 'boost mode'
         if fromsurface[1][1] is not 1:
-            M = arrdiv(M, 2)
+            M = arrdiv_boost(M)
 
 
         # Correct for things being backwards or poorly toleranced
@@ -271,18 +303,23 @@ try:
         motorrun(M)
 
         # Open
-        if fromsurface[1][6] is 1:
-            gpio.output(STEPPER_DIR_PIN, gpio.HIGH)
-            TH.send(15, .5)
-        else:
+        if fromsurface[1][6] is 1 or fromsurface[1][7] is 1:
+            print("MANIP")
+            gpio.output(STEPPER_DIR_PIN, fromsurface[1][6])
+            if not MANIPULATOR_STATE:
+                MANIPULATOR_STATE = True
+                TH.send(15, .5)
+        elif MANIPULATOR_STATE == True:
+            print("NOMANIP")
+            MANIPULATOR_STATE = False
             TH.send(15, 0)
 
-        # Close
-        if fromsurface[1][7] is 1:
-            gpio.output(STEPPER_DIR_PIN, gpio.LOW)
-            TH.send(15, .5)
-        else:
-            TH.send(15, 0)
+#        # Close
+#        if fromsurface[1][7] is 1:
+#            gpio.output(STEPPER_DIR_PIN, gpio.LOW)
+#            TH.send(15, .5)
+#        else:
+#            TH.send(15, 0)
 
         # Pump
         if fromsurface[1][10] is 1:
