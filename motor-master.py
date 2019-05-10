@@ -66,14 +66,16 @@ arrc = [
     ]
 
 arr_corrective = [
-        [1, -1, 1, -1], [-1, -1, 1, -1]
+        [1, -1, 1, -1], [1, 1, 1, -1]
     ]
 
 BOOST_ARR = [
         [False, False, False, False], [True, True, True, True]
     ]
 
-
+DIV_DEFAULT = [
+        [1, 1, 1, 1], [BOOST_DIV, BOOST_DIV, BOOST_DIV, BOOST_DIV]
+    ]
 def printarr(arra):
     print("{:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(arra[0][0], arra[0][1], arra[0][2], arra[0][3], arra[1][0], arra[1][1], arra[1][2], arra[1][3]))
 
@@ -119,15 +121,15 @@ def arrdiv(arra, const):
         print("0div")
         return [[0, 0, 0, 0], [0, 0, 0, 0]]
 
-def arrdiv_boost(arra):
-    a = 1 if BOOST_ARR[0][0] else BOOST_DIV
-    b = 1 if BOOST_ARR[0][1] else BOOST_DIV
-    c = 1 if BOOST_ARR[0][2] else BOOST_DIV
-    d = 1 if BOOST_ARR[0][3] else BOOST_DIV
-    e = 1 if BOOST_ARR[1][0] else BOOST_DIV
-    f = 1 if BOOST_ARR[1][1] else BOOST_DIV
-    g = 1 if BOOST_ARR[1][2] else BOOST_DIV
-    h = 1 if BOOST_ARR[1][3] else BOOST_DIV
+def arrdiv_boost(arra, doboost):
+    a = 1 if doboost else BOOST_DIV
+    b = 1 if doboost else BOOST_DIV
+    c = 1 if doboost else BOOST_DIV
+    d = 1 if doboost else BOOST_DIV
+    e = BOOST_DIV 
+    f = BOOST_DIV 
+    g = BOOST_DIV 
+    h = BOOST_DIV 
 
     return [
         [
@@ -209,7 +211,7 @@ def arraddint(arra, i):
 
 
 def hatarr(hat):
-    hatconst = 0.2
+    hatconst = 0.4
     if hat == 0:
         return [[0, 0, 0, 0], [0, 0, 0, 0]]
     if hat == 1:
@@ -243,7 +245,8 @@ def motorrun(M):
 
 try:
     sleep(1)
-    for i in range(0, 15):
+    #TODO: get rid of this (maybe)
+    for i in range(1, 15):
         TH.move(i, .5)
 
     while True:
@@ -282,9 +285,7 @@ try:
                 M = arradd(M, arrmult(-.2, arrr))
   
         # Use the thumb button as 'boost mode'
-        if fromsurface[1][1] is not 1:
-            M = arrdiv_boost(M)
-
+        M = arrdiv_boost(M, fromsurface[1][1])
 
         # Correct for things being backwards or poorly toleranced
         M = arrmultarr(arr_corrective, M)
@@ -302,7 +303,7 @@ try:
         # Matrix is now values of 0 to 1, with each index representing a thruster
         motorrun(M)
 
-        # Open
+        # Manipulator
         if fromsurface[1][6] is 1 or fromsurface[1][7] is 1:
             print("MANIP")
             gpio.output(STEPPER_DIR_PIN, fromsurface[1][6])
@@ -313,13 +314,7 @@ try:
             print("NOMANIP")
             MANIPULATOR_STATE = False
             TH.send(15, 0)
-
-#        # Close
-#        if fromsurface[1][7] is 1:
-#            gpio.output(STEPPER_DIR_PIN, gpio.LOW)
-#            TH.send(15, .5)
-#        else:
-#            TH.send(15, 0)
+            TH.send(15, 0)
 
         # Pump
         if fromsurface[1][10] is 1:
